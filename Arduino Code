@@ -1,0 +1,52 @@
+#include <Servo.h>
+
+Servo servo[4];
+int default_angle[4] = {90, 75, 90, 110};  // Set a default angle for each servo except the first one
+
+void setup()
+{
+    Serial.begin(9600);
+    servo[0].attach(9);  // This servo won't be set to a default angle
+    servo[1].attach(10);
+    servo[2].attach(11);
+    servo[3].attach(12);
+
+    // Set default angles for servos 2 to 4 (skip the first servo)
+    for (size_t i = 1; i < 4; i++)
+    {
+        servo[i].write(default_angle[i]);
+    }
+}
+
+byte angle[4];
+byte pre_angle[4];
+long t = millis();
+
+void loop()
+{
+    if (Serial.available())
+    {
+        Serial.readBytes(angle, 4);
+        for (size_t i = 0; i < 4; i++)
+        {
+            if (angle[i] != pre_angle[i])
+            {
+                servo[i].write(angle[i]);
+                pre_angle[i] = angle[i];
+            }
+        }
+        t = millis();
+    }
+
+    if (millis() - t > 1000)
+    {
+        for (size_t i = 0; i < 4; i++)
+        {
+            // Only apply default angles to servos 2 to 4
+            if (i > 0) {
+                servo[i].write(default_angle[i]);
+                pre_angle[i] = default_angle[i];
+            }
+        }
+    }
+}
